@@ -1,5 +1,0 @@
-streamlit
-nltk
-speechrecognition
-pyaudio
-scikit-learn
