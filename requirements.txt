@@ -1,9 +1,6 @@
 streamlit
-nltk
-speechrecognition
-pyaudio
-scikit-learn
-
-streamlit
 openai>=1.0.0
 streamlit-audiorecorder
+nltk
+speechrecognition
+scikit-learn
