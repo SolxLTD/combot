@@ -52,7 +52,7 @@ Cloud computing means storing and accessing data on the internet instead of your
 Examples include Google Drive, Dropbox, and iCloud.
 
 SOMOLO:
-the created of combot.
+the creator of combot.
 
 ARTIFICIAL INTELLIGENCE:
 Artificial Intelligence allows computers to learn and make decisions.
@@ -63,4 +63,5 @@ Restarting a computer can fix many basic problems.
 Slow performance may be caused by low RAM or too many background apps.
 
 END.
+
 
