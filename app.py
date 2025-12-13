@@ -1,80 +1,118 @@
 import streamlit as st
-import nltk
-import speech_recognition as sr
-from nltk.tokenize import word_tokenize, sent_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
-@st.cache_resource
-def load_data():
-    with open("data.txt", "r", encoding="utf-8") as f:
-        text = f.read()
-
-    sentences = sent_tokenize(text)
-    vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform(sentences)
-
-    return sentences, vectorizer, vectors
-
-sentences, vectorizer, vectors = load_data()
-
-def get_response(user_input):
-    user_vec = vectorizer.transform([user_input])
-    similarities = cosine_similarity(user_vec, vectors).flatten()
-    
-    best_match_index = similarities.argmax()
-    best_score = similarities[best_match_index]
-
-    # If score is too low → topic not in list
-    if best_score < 0.3:
-        return (
-            "⚠️ I don’t have information on that topic yet.\n\n"
-            "You can check online:\n"
-            "- Google Search: https://www.google.com/\n"
-            "- Wikipedia: https://www.wikipedia.org/\n"
-            "- YouTube Tutorials: https://www.youtube.com/\n\n"
-            "Try asking another computer-related question!"
-        )
-
-    return sentences[best_match_index]
-
-def speech_to_text():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.info("🎤 Listening... Speak now.")
-        audio = recognizer.listen(source)
-
-    try:
-        text = recognizer.recognize_google(audio)
-        return text
-    except Exception:
-        return "ERROR"
-
-st.title("💻 Smart Voice + Text Computer Chatbot")
-
-st.write("Ask any **computer-related question**, using **text or voice**.")
-st.write("If a topic is not in my database, I will refer you online.")
-
-mode = st.radio("Choose input method:", ["Text", "Voice"])
+import os
 
 
-if mode == "Text":
-    user_input = st.text_input("Type your question here:")
-    if st.button("Ask"):
-        if user_input.strip() == "":
-            st.warning("Please type something.")
-        else:
-            response = get_response(user_input)
-            st.success(response)
+st.set_page_config(
+    page_title="Computer Assistant",
+    page_icon="💻",
+    layout="centered"
+)
 
-else:
-    st.write("Click below and speak.")
-    if st.button("🎤 Start Recording"):
-        transcription = speech_to_text()
 
-        if transcription == "ERROR":
-            st.error("Could not understand your voice. Try again.")
-        else:
-            st.write("**You said:**", transcription)
-            response = get_response(transcription)
-            st.success(response)
+st.markdown("""
+<style>
+body {
+    background-color: #f5f7fb;
+}
+.main-title {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 700;
+    color: #1f4fff;
+}
+.subtitle {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+.chat-user {
+    background: #dbe7ff;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 10px 0;
+    text-align: right;
+}
+.chat-bot {
+    background: #eeeeee;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 10px 0;
+}
+footer {
+    text-align: center;
+    color: gray;
+    margin-top: 40px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+st.markdown("<div class='main-title'>💻 AI Computer Assistant</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Ask any basic computer-related question</div>", unsafe_allow_html=True)
+
+
+def load_data(file_path="data.txt"):
+    knowledge = {}
+    if not os.path.exists(file_path):
+        return knowledge
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        current_topic = None
+        content = []
+
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.isupper() and line.endswith(":"):
+                if current_topic:
+                    knowledge[current_topic] = " ".join(content)
+                current_topic = line.replace(":", "").lower()
+                content = []
+            else:
+                content.append(line)
+
+        if current_topic:
+            knowledge[current_topic] = " ".join(content)
+
+    return knowledge
+
+
+knowledge_base = load_data()
+
+def get_answer(question):
+    q = question.lower()
+    for topic, explanation in knowledge_base.items():
+        if topic in q:
+            return explanation
+
+    return (
+        "I don't have this topic in my knowledge base yet.\n\n"
+        "Try searching online:\n"
+        f"https://www.google.com/search?q={q.replace(' ', '+')}"
+    )
+
+
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+
+user_input = st.text_input("Ask a computer question:")
+
+if st.button("Ask"):
+    if user_input.strip():
+        answer = get_answer(user_input)
+        st.session_state.history.append(("user", user_input))
+        st.session_state.history.append(("bot", answer))
+    else:
+        st.warning("Please type a question.")
+
+
+for role, message in st.session_state.history:
+    if role == "user":
+        st.markdown(f"<div class='chat-user'>{message}</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='chat-bot'>{message}</div>", unsafe_allow_html=True)
+
+st.markdown("<footer>Created by YOU • Powered by Streamlit</footer>", unsafe_allow_html=True)
