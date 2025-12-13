@@ -1,64 +1,58 @@
 import streamlit as st
 import os
 
-
+# ---------- PAGE CONFIG ----------
 st.set_page_config(
     page_title="Computer Assistant",
-    page_icon="💻",
-    layout="centered"
+    page_icon="💻"
 )
 
+# ---------- CSS ----------
+st.markdown(
+    """
+    <style>
+    .main-title {
+        text-align: center;
+        font-size: 42px;
+        font-weight: bold;
+        color: #1f4fff;
+    }
+    .subtitle {
+        text-align: center;
+        color: #6c757d;
+        margin-bottom: 30px;
+    }
+    .user {
+        background-color: #dbe7ff;
+        padding: 10px;
+        border-radius: 10px;
+        text-align: right;
+        margin: 8px 0;
+    }
+    .bot {
+        background-color: #eeeeee;
+        padding: 10px;
+        border-radius: 10px;
+        margin: 8px 0;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-st.markdown("""
-<style>
-body {
-    background-color: #f5f7fb;
-}
-.main-title {
-    text-align: center;
-    font-size: 42px;
-    font-weight: 700;
-    color: #1f4fff;
-}
-.subtitle {
-    text-align: center;
-    color: #6c757d;
-    margin-bottom: 30px;
-}
-.chat-user {
-    background: #dbe7ff;
-    padding: 12px;
-    border-radius: 12px;
-    margin: 10px 0;
-    text-align: right;
-}
-.chat-bot {
-    background: #eeeeee;
-    padding: 12px;
-    border-radius: 12px;
-    margin: 10px 0;
-}
-footer {
-    text-align: center;
-    color: gray;
-    margin-top: 40px;
-}
-</style>
-""", unsafe_allow_html=True)
+# ---------- HEADER ----------
+st.markdown("<div class='main-title'>💻 Computer Assistant</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Answers from your data.txt file</div>", unsafe_allow_html=True)
 
-
-st.markdown("<div class='main-title'>💻 AI Computer Assistant</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Ask any basic computer-related question</div>", unsafe_allow_html=True)
-
-
-def load_data(file_path="data.txt"):
+# ---------- LOAD DATA ----------
+def load_data():
     knowledge = {}
-    if not os.path.exists(file_path):
+    if not os.path.exists("data.txt"):
         return knowledge
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        current_topic = None
-        content = []
+    with open("data.txt", "r", encoding="utf-8") as f:
+        topic = None
+        buffer = []
 
         for line in f:
             line = line.strip()
@@ -66,53 +60,49 @@ def load_data(file_path="data.txt"):
                 continue
 
             if line.isupper() and line.endswith(":"):
-                if current_topic:
-                    knowledge[current_topic] = " ".join(content)
-                current_topic = line.replace(":", "").lower()
-                content = []
+                if topic:
+                    knowledge[topic] = " ".join(buffer)
+                topic = line.replace(":", "").lower()
+                buffer = []
             else:
-                content.append(line)
+                buffer.append(line)
 
-        if current_topic:
-            knowledge[current_topic] = " ".join(content)
+        if topic:
+            knowledge[topic] = " ".join(buffer)
 
     return knowledge
 
-
 knowledge_base = load_data()
 
+# ---------- CHAT ----------
 def get_answer(question):
     q = question.lower()
-    for topic, explanation in knowledge_base.items():
+    for topic, answer in knowledge_base.items():
         if topic in q:
-            return explanation
+            return answer
+    return "Sorry, I could not find this topic in my data."
 
-    return (
-        "I don't have this topic in my knowledge base yet.\n\n"
-        "Try searching online:\n"
-        f"https://www.google.com/search?q={q.replace(' ', '+')}"
-    )
-
-
+# ---------- SESSION ----------
 if "history" not in st.session_state:
     st.session_state.history = []
 
-
-user_input = st.text_input("Ask a computer question:")
+# ---------- INPUT ----------
+user_input = st.text_input("Ask a question:")
 
 if st.button("Ask"):
     if user_input.strip():
-        answer = get_answer(user_input)
+        response = get_answer(user_input)
         st.session_state.history.append(("user", user_input))
-        st.session_state.history.append(("bot", answer))
+        st.session_state.history.append(("bot", response))
     else:
         st.warning("Please type a question.")
 
-
-for role, message in st.session_state.history:
+# ---------- DISPLAY ----------
+for role, msg in st.session_state.history:
     if role == "user":
-        st.markdown(f"<div class='chat-user'>{message}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='user'>{msg}</div>", unsafe_allow_html=True)
     else:
-        st.markdown(f"<div class='chat-bot'>{message}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='bot'>{msg}</div>", unsafe_allow_html=True)
 
-st.markdown("<footer>Created by YOU • Powered by Streamlit</footer>", unsafe_allow_html=True)
+st.markdown("---")
+st.markdown("Created by YOU • Streamlit Cloud")
