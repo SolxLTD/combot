@@ -34,7 +34,7 @@ add_custom_css()
 
 
 st.markdown("<img class='logo' src='https://cdn-icons-png.flaticon.com/512/1829/1829581.png'/>", unsafe_allow_html=True)
-st.markdown("<h1 class='main-title'>AI Computer Assistant</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>Solx Computer Assistant</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Ask about computers — use text, upload audio, or record in your browser.</p>", unsafe_allow_html=True)
 
 
@@ -207,3 +207,4 @@ if st.session_state.history:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:#7c8aa5;'>Created by YOU - Powered by Streamlit</p>", unsafe_allow_html=True)
+
