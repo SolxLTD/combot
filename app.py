@@ -51,7 +51,6 @@ def load_kb_from_file(path="data.txt"):
                 line = line.strip()
                 if not line:
                     continue
-                # Accept lines of the form "topic: explanation"
                 if ":" in line:
                     k, v = line.split(":", 1)
                     kb[k.strip().lower()] = v.strip()
@@ -62,7 +61,6 @@ def load_kb_from_file(path="data.txt"):
 
 knowledge_base = load_kb_from_file()
 if not knowledge_base:
-    # minimal fallback KB
     knowledge_base = {
         "operating system": "An OS manages hardware, memory, files, and programs.",
         "cpu": "The CPU is the brain of the computer responsible for processing instructions.",
@@ -81,7 +79,6 @@ def get_kb_response(query: str):
     for topic, answer in knowledge_base.items():
         if topic in q:
             return answer
-    # fallback: refer user to web search
     return ("I don't have that topic in my knowledge base yet. "
             "Try searching online: https://www.google.com/search?q=" + q.replace(" ", "+"))
 
@@ -207,4 +204,5 @@ if st.session_state.history:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:#7c8aa5;'>Created by YOU - Powered by Streamlit</p>", unsafe_allow_html=True)
+
 
